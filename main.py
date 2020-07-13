@@ -1,4 +1,5 @@
 import boards
+from input import Input
 from soduko import Soduko
 
 if __name__ == "__main__":
@@ -10,8 +11,7 @@ _`"\\\ ||| ||| |||  ||| ||| ||| |||\\\  ||| |||
 \\=/// \\\=/// |||=///  \\\=/// ||| \\\ \\\=///
  `""`   `"""`  `"""""`   `"""`  `"`  `"` `"""` 
                   @mdoron''')
-    print("[*] Solving...")
-    solved_board = Soduko.solve(boards.board4)
+    solved_board = Soduko.solve(boards.board3)
     if solved_board is None:
         print("[*] Sorry! We could'nt find a solution this time")
     else:

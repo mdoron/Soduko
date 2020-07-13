@@ -1,2 +1,7 @@
 SQUARE_SIZE = 3
 BOARD_SIZE = 9
+
+DEBUG = False
+SOLUTION = True
+LOG = False
+

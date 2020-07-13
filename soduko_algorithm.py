@@ -1,9 +1,7 @@
 import copy
-from random import randint
 
-DEBUG = False
-SOLUTION = False
-LOG = False
+from consts import *
+from string_builder import StringBuilder
 
 
 class TooManyComputationsException(Exception):
@@ -27,6 +25,7 @@ class SodukoAlgorithm:
         self.max_depth = 16
         self.initial_board = initial_board
         self.working_board = None
+        self.steps = []
 
     def solve(self):
         res_board = None
@@ -35,27 +34,27 @@ class SodukoAlgorithm:
             try:
                 if LOG: print("[*] Iteration # {}".format(iterations))
                 iterations += 1
-                self.max_depth = randint(1, 20)
+                self.max_depth = 3  # randint(1, 20)
                 if iterations % 1 == 0:
-                    self.max_loot_times += 20
-                    self.max_guess_times += 20
+                    self.max_loot_times += 2000
+                    self.max_guess_times += 2000
                 self.loot_times = 0
                 self.guess_times = 0
-                if LOG: print("[*]\t\tNew max depth is {} ({} guesses)".format(self.max_depth, self.max_depth + 1))
-                if LOG: print(
-                    "[*]\t\tNew max_loot_times={}, max_guess_times={}".format(self.max_loot_times, self.max_guess_times))
+                if LOG: print("[*]\t\tNew max depth is {}".format(self.max_depth))
+                if LOG: print("[*]\t\tNew max_loot_times={}, max_guess_times={}".format(self.max_loot_times,
+                                                                                        self.max_guess_times))
                 res_board = self.aux_solve(copy.deepcopy(self.initial_board), -1, -1, self.max_depth)
             except TooManyComputationsException:
                 if LOG: print("[*]\t\tToo many computations with max_depth={}".format(self.max_depth))
 
             if res_board is not None:
-                print("[*] Done")
+                print("[*]\t\tDone")
                 break
             else:
                 if LOG: print(
                     "[*]\t\tNo solution with max_depth={}, max_loot_times={}, max_guess_times={}".format(self.max_depth,
-                                                                                                      self.max_loot_times,
-                                                                                                      self.max_guess_times))
+                                                                                                         self.max_loot_times,
+                                                                                                         self.max_guess_times))
         return res_board
 
     def loot(self, board):
@@ -94,8 +93,8 @@ class SodukoAlgorithm:
 
         return looted_board
 
-    def aux_solve(self, board, x, y, max_depth):
-        if DEBUG: print("[*] Depth is " + str(max_depth))
+    def aux_solve(self, board, x, y, depth):
+        if DEBUG: print("[*] Depth is " + str(depth))
         if board.is_stucked():
             return None
 
@@ -105,14 +104,14 @@ class SodukoAlgorithm:
             return None
 
         if looted_board.is_full():
-            if SOLUTION: looted_board.show(x, y)
+            if DEBUG: looted_board.show(x, y)
             return looted_board
 
         if self.loot_times >= self.max_loot_times and self.guess_times >= self.max_guess_times:
             if DEBUG: print("S")
             raise TooManyComputationsException
 
-        if max_depth <= 0:
+        if depth <= 0:
             if DEBUG: print("S")
             return None
 
@@ -129,18 +128,20 @@ class SodukoAlgorithm:
                 self.guess_times += 1
                 new_board.set_inlay(inlay.x, inlay.y, op)
                 new_board.update_diff(new_board.get_inlay(inlay.x, inlay.y))
-                if DEBUG: print("G: [{}, {}]{} = {}".format(inlay.x, inlay.y, inlay.options, op))
+                if DEBUG: print("G: [{}, {}]{} = {}".format(inlay.x+1, inlay.y+1, inlay.options, op))
                 if DEBUG: print("")
-                res = self.aux_solve(new_board, inlay.x, inlay.y, max_depth - 1)
+                res = self.aux_solve(new_board, inlay.x, inlay.y, depth - 1)
                 if res is not None:
-                    if SOLUTION: print("G: [{}, {}] = {}".format(inlay.x, inlay.y, op))
-                    if SOLUTION: board.show(inlay.x, inlay.y)
-                    if SOLUTION: print("")
-                    if LOG and not self.found: print(
-                        "[*]\t\tFound solution with {} guesses".format(self.max_depth - max_depth))
+                    sb = StringBuilder()
+                    if SOLUTION: sb += board._str_helper(inlay.x, inlay.y) # board.show(inlay.x, inlay.y)
+                    if SOLUTION: sb += "\n" # board.show(inlay.x, inlay.y)
+                    if SOLUTION: sb += ("[*]\t\tGuessed that [{}, {}] = {} // Options {}".format(inlay.x+1, inlay.y+1, op, inlay.options))
+                    if SOLUTION and not self.found: print(
+                        "[*]\t\tFound solution with {} guesses".format(self.max_depth - depth + 1))
+                    self.steps = [str(sb)] + self.steps
                     self.found = True
                     return res
-                if DEBUG: print("[*] Depth is " + str(max_depth))
+                if DEBUG: print("[*] Depth is " + str(depth))
                 new_board.unset_inlay(inlay.x, inlay.y)
                 new_board.get_inlay(inlay.x, inlay.y).remove_option(op)
             looted_board.unset_inlay(inlay.x, inlay.y)

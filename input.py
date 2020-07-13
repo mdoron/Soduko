@@ -19,7 +19,7 @@ class Input:
         for i in range(0, 9):
             b.append(input("[*] Line {}: ".format((i+1))))
 
-        return Input.parse(b)
+        return b
 
     @staticmethod
     def _split(word):

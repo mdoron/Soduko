@@ -49,15 +49,25 @@ class SodukoBoard:
 
         sb = StringBuilder()
         for i in range(0, BOARD_SIZE):
+            if not DEBUG:
+                if i % 3 == 0:
+                    sb += "=====================\n"
             for j in range(0, BOARD_SIZE):
-                if i == x and j == y:
-                    sb += "[*{0}*] {1}".format(
-                        self.get_inlay(i, j).get() if not self.get_inlay(i, j).is_empty() else "",
-                        set_str(self.get_inlay(i, j).get_options()))
+                if DEBUG:
+                    if i == x and j == y:
+                        sb += "[*{0}*] {1}".format(
+                            self.get_inlay(i, j).get() if not self.get_inlay(i, j).is_empty() else "",
+                            set_str(self.get_inlay(i, j).get_options()))
+                    else:
+                        sb += "[{0}] {1}".format(self.get_inlay(i, j).get() if not self.get_inlay(i, j).is_empty() else "",
+                                                 set_str(self.get_inlay(i, j).get_options()))
+                        sb += "\t\t\t"
                 else:
-                    sb += "[{0}] {1}".format(self.get_inlay(i, j).get() if not self.get_inlay(i, j).is_empty() else "",
+                    if j == 3 or j == 6:
+                        sb += "| "
+                    sb += "{0}".format(self.get_inlay(i, j).get() if not self.get_inlay(i, j).is_empty() else " ",
                                              set_str(self.get_inlay(i, j).get_options()))
-                    sb += "\t\t\t"
+                    sb += " "
 
             sb += "\n"
 
