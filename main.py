@@ -2,14 +2,14 @@ import boards
 from soduko import Soduko
 
 if __name__ == "__main__":
-    print(
- r''' ___,   ____,   ____,    _,  _,  _,  _,  ____, 
+    print(r'''
+ ___,   ____,   ____,    _,  _,  _,  _,  ____, 
 ///=\\ ///=\\\ /||=\\\  /|| /|| /|| /// ///=\\\
 \\\_,  ||| ||| |||  ||| ||| ||| |||///  ||| |||
 _`"\\\ ||| ||| |||  ||| ||| ||| |||\\\  ||| |||
 \\=/// \\\=/// |||=///  \\\=/// ||| \\\ \\\=///
  `""`   `"""`  `"""""`   `"""`  `"`  `"` `"""` 
-                    @mdoron''')
+                  @mdoron''')
     print("[*] Solving...")
     solved_board = Soduko.solve(boards.board4)
     if solved_board is None:
