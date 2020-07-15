@@ -17,7 +17,7 @@ class SodukoBoard:
 
         for i in range(0, 9):
             for j in range(1, 10):
-                self.rows[i][j], self.cols[i][j], self.areas[i][j] = [], [], []
+                self.rows[i][j], self.cols[i][j], self.areas[i][j] = set([]), set([]), set([])
 
         self.lonely_options = set([])
         self.empty_inlays = set([])
@@ -215,9 +215,9 @@ class SodukoBoard:
             return
 
         for op in inlay.options:
-            self.get_row(inlay.x)[op].append(inlay)
-            self.get_col(inlay.y)[op].append(inlay)
-            self.get_area(inlay.x, inlay.y)[op].append(inlay)
+            self.get_row(inlay.x)[op].add(inlay)
+            self.get_col(inlay.y)[op].add(inlay)
+            self.get_area(inlay.x, inlay.y)[op].add(inlay)
 
     def _remove_from_structures(self, inlay):
         if inlay is None:
@@ -230,38 +230,38 @@ class SodukoBoard:
                 row[op].remove(inlay)
                 col[op].remove(inlay)
                 area[op].remove(inlay)
-            except ValueError:
+            except KeyError:
                 pass
 
             if inlay.value == op:
-                row[op] = []
-                col[op] = []
-                area[op] = []
+                row[op] = set()
+                col[op] = set()
+                area[op] = set()
 
             if len(row[op]) == 1:
-                self.lonely_options.add((op, row[op][0]))
+                self.lonely_options.add((op, row[op].pop()))
 
             if len(col[op]) == 1:
-                self.lonely_options.add((op, col[op][0]))
+                self.lonely_options.add((op, col[op].pop()))
 
             if len(area[op]) == 1:
-                self.lonely_options.add((op, area[op][0]))
+                self.lonely_options.add((op, area[op].pop()))
 
     def _get_lonely_options(self):
         for i in range(self.board_size):
             for j in range(1, 10):
                 if len(self.rows[i][j]) == 1:
-                    self.lonely_options.add((j, self.rows[i][j][0]))
+                    self.lonely_options.add((j, self.rows[i][j].pop()))
 
         for i in range(self.board_size):
             for j in range(1, 10):
                 if len(self.cols[i][j]) == 1:
-                    self.lonely_options.add((j, self.cols[i][j][0]))
+                    self.lonely_options.add((j, self.cols[i][j].pop()))
 
         for i in range(self.board_size):
             for j in range(1, 10):
                 if len(self.areas[i][j]) == 1:
-                    self.lonely_options.add((j, self.areas[i][j][0]))
+                    self.lonely_options.add((j, self.areas[i][j].pop()))
 
     def get_empty_inlays(self):
         return self.empty_inlays
