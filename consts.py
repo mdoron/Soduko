@@ -1,6 +1,8 @@
 SQUARE_SIZE = 3
 BOARD_SIZE = 9
 
+global DEBUG, SOLUTION, LOG
+
 DEBUG = False
 SOLUTION = True
 LOG = False

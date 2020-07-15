@@ -8,6 +8,12 @@ class Inlay:
         self.value = value
         self.options = set([])
 
+    def __eq__(self, other):
+        return self.x == other.x and self.y == other.y
+
+    def __hash__(self):
+        return hash((self.x, self.y))
+
     def __deepcopy__(self, memodict={}):
         new = Inlay()
         new.x = self.x

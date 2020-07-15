@@ -14,10 +14,10 @@ class Input:
         [*] Line 9: 000080079
         :return:
         """
-        print("Write Sudoku board as lines of numbers without spaces. Use '0' for empty inlay.")
+        print("[*] Write Sudoku board as lines of numbers without spaces. Use '0' for empty inlay.")
         b = []
         for i in range(0, 9):
-            b.append(input("[*] Line {}: ".format((i+1))))
+            b.append(input("[*]\tLine {}: ".format((i+1))))
 
         return b
 

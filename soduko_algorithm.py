@@ -1,4 +1,5 @@
 import copy
+from random import randint
 
 from consts import *
 from string_builder import StringBuilder
@@ -13,16 +14,17 @@ class SodukoAlgorithm:
     Implementation of the algorithm to solve a Soduko board
     """
 
-    def __init__(self, initial_board):
+    def __init__(self, initial_board, maxdepth, maxcomps):
         self.found = False
         self.max_depth = None
         self.loot_times = 0
         self.guess_times = 0
         self.iterations = 0
-        self.max_loot_times = 20
-        self.max_guess_times = 20
+        self.max_loot_times = maxcomps
+        self.max_guess_times = maxcomps
         self.max_iterations = 10
-        self.max_depth = 16
+        self.max_comps = maxcomps
+        self.max_depth = maxdepth
         self.initial_board = initial_board
         self.working_board = None
         self.steps = []
@@ -34,25 +36,25 @@ class SodukoAlgorithm:
             try:
                 if LOG: print("[*] Iteration # {}".format(iterations))
                 iterations += 1
-                self.max_depth = 3  # randint(1, 20)
-                if iterations % 1 == 0:
-                    self.max_loot_times += 2000
-                    self.max_guess_times += 2000
+                # self.max_depth = randint(1, 20)
+                # if iterations % 1 == 0:
+                #     self.max_loot_times += 1000
+                #     self.max_guess_times += 1000
                 self.loot_times = 0
                 self.guess_times = 0
-                if LOG: print("[*]\t\tNew max depth is {}".format(self.max_depth))
-                if LOG: print("[*]\t\tNew max_loot_times={}, max_guess_times={}".format(self.max_loot_times,
+                if LOG: print("[*]\tNew max depth is {}".format(self.max_depth))
+                if LOG: print("[*]\tNew max_loot_times={}, max_guess_times={}".format(self.max_loot_times,
                                                                                         self.max_guess_times))
                 res_board = self.aux_solve(copy.deepcopy(self.initial_board), -1, -1, self.max_depth)
             except TooManyComputationsException:
-                if LOG: print("[*]\t\tToo many computations with max_depth={}".format(self.max_depth))
+                if LOG: print("[*]\tToo many computations with max_depth={}".format(self.max_depth))
 
             if res_board is not None:
-                print("[*]\t\tDone")
+                print("[*]\tDone")
                 break
             else:
                 if LOG: print(
-                    "[*]\t\tNo solution with max_depth={}, max_loot_times={}, max_guess_times={}".format(self.max_depth,
+                    "[*]\tNo solution with max_depth={}, max_loot_times={}, max_guess_times={}".format(self.max_depth,
                                                                                                          self.max_loot_times,
                                                                                                          self.max_guess_times))
         return res_board
@@ -62,21 +64,30 @@ class SodukoAlgorithm:
             return None
 
         self.loot_times += 1
-        new_board = board
         for inlay in copy.deepcopy(board.get_empty_inlays()):
             if len(inlay.get_options()) == 1:
+
                 try:
-                    new_inlay = new_board.get_inlay(inlay.x, inlay.y)
-                    new_board.set_inlay(new_inlay.x, new_inlay.y, new_inlay.get_options().pop())
-                    if DEBUG: print("T: [{}, {}] = {}".format(new_inlay.x, new_inlay.y, new_inlay.value))
+                    board.set_inlay(inlay.x, inlay.y, inlay.get_options().pop())
+                    if DEBUG: print("T: [{}, {}] = {}".format(inlay.x, inlay.y, board.get_inlay(inlay.x, inlay.y).value))
                     if DEBUG: print("")
                 except KeyError:
                     continue
-                new_board.update_diff(new_inlay)
-                if new_board.is_stucked():
+                board.update_diff_options(board.get_inlay(inlay.x, inlay.y))
+                if board.is_stucked():
                     return None
 
-        return new_board
+        for op, inlay in copy.deepcopy(board.lonely_options):
+            board.set_inlay(inlay.x, inlay.y, op)
+            if DEBUG: print("M: [{}, {}] = {}".format(inlay.x+1, inlay.y+1, op))
+            if DEBUG: print("")
+
+            board.update_diff_options(board.get_inlay(inlay.x, inlay.y))
+            board.lonely_options.remove((op, inlay))
+            if board.is_stucked():
+                return None
+
+        return board
 
     def loot_loop(self, board):
         if board.is_stucked():
@@ -87,7 +98,7 @@ class SodukoAlgorithm:
         if looted_board is None:
             if DEBUG: print("S")
             return None
-        while looted_board is not None and board_empty_count > len(looted_board.get_empty_inlays()):
+        while looted_board is not None and (board_empty_count > len(looted_board.get_empty_inlays()) or len(looted_board.lonely_options) != 0):
             board_empty_count = len(looted_board.get_empty_inlays())
             looted_board = self.loot(looted_board)
 
@@ -127,7 +138,7 @@ class SodukoAlgorithm:
             for op in options:
                 self.guess_times += 1
                 new_board.set_inlay(inlay.x, inlay.y, op)
-                new_board.update_diff(new_board.get_inlay(inlay.x, inlay.y))
+                new_board.update_diff_options(new_board.get_inlay(inlay.x, inlay.y))
                 if DEBUG: print("G: [{}, {}]{} = {}".format(inlay.x+1, inlay.y+1, inlay.options, op))
                 if DEBUG: print("")
                 res = self.aux_solve(new_board, inlay.x, inlay.y, depth - 1)
@@ -135,15 +146,14 @@ class SodukoAlgorithm:
                     sb = StringBuilder()
                     if SOLUTION: sb += board._str_helper(inlay.x, inlay.y) # board.show(inlay.x, inlay.y)
                     if SOLUTION: sb += "\n" # board.show(inlay.x, inlay.y)
-                    if SOLUTION: sb += ("[*]\t\tGuessed that [{}, {}] = {} // Options {}".format(inlay.x+1, inlay.y+1, op, inlay.options))
+                    if SOLUTION: sb += ("[*]\tGuessed that [{}, {}] = {} // Options {}".format(inlay.x+1, inlay.y+1, op, inlay.options))
                     if SOLUTION and not self.found: print(
-                        "[*]\t\tFound solution with {} guesses".format(self.max_depth - depth + 1))
+                        "[*]\tFound solution with {} guesses".format(self.max_depth - depth + 1))
                     self.steps = [str(sb)] + self.steps
                     self.found = True
                     return res
                 if DEBUG: print("[*] Depth is " + str(depth))
                 new_board.unset_inlay(inlay.x, inlay.y)
                 new_board.get_inlay(inlay.x, inlay.y).remove_option(op)
-            looted_board.unset_inlay(inlay.x, inlay.y)
 
         return res
