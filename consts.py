@@ -3,7 +3,7 @@ BOARD_SIZE = 9
 
 global DEBUG, SOLUTION, LOG
 
-DEBUG = False
+DEBUG = True
 SOLUTION = True
 LOG = False
 

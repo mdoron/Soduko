@@ -49,10 +49,17 @@ class SodukoBoard:
                 if new.get_inlay(i, j).is_empty():
                     new.empty_inlays.add(new.get_inlay(i, j))
 
-        new.rows = copy.deepcopy(self.rows)
-        new.cols = copy.deepcopy(self.cols)
-        new.areas = copy.deepcopy(self.areas)
-        new.lonely_options = copy.deepcopy(self.lonely_options)
+        for i in range(0, new.board_size):
+            for j in range(0, new.board_size):
+                new.get_inlay(i, j).set_options(new._init_options(i, j))
+                new._add_to_structures(new.get_inlay(i, j))
+
+        new._get_lonely_options()
+
+        # new.rows = copy.deepcopy(self.rows)
+        # new.cols = copy.deepcopy(self.cols)
+        # new.areas = copy.deepcopy(self.areas)
+        # new.lonely_options = copy.deepcopy(self.lonely_options)
 
         return new
 
