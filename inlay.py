@@ -14,6 +14,16 @@ class Inlay:
     def __hash__(self):
         return hash((self.x, self.y))
 
+    def __repr__(self):
+        return " ".join(["(", str(self.x + 1) if self.x is not None else "x", ", ", str(self.y + 1) if self.y is not None else "y", ") = ",
+                         str(self.value) if self.value is not None else "[]",
+                         str(self.options) if self.options is not None else "{}"])
+
+    def __str__(self):
+        return " ".join(["(", str(self.x + 1) if self.x is not None else "x", " ", str(self.y + 1) if self.y is not None else "y", ") = ",
+                         str(self.value) if self.value is not None else "[]",
+                         str(self.options) if self.options is not None else "{}"])
+
     def __deepcopy__(self, memodict={}):
         new = Inlay()
         new.x = self.x

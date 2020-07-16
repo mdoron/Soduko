@@ -1,4 +1,5 @@
 import copy
+from random import shuffle
 
 from consts import *
 from string_builder import StringBuilder
@@ -81,6 +82,43 @@ class SodukoAlgorithm:
                                         board.lonely_options.add((op, area[op].pop()))
                                 except KeyError:
                                     if LOG: print("[*]\tNo options to remove")
+        for row in board.rows:
+            for i in range(1, board.board_size + 1):
+                if len(row[i]) != 2:
+                    continue
+                for j in range(i + 1, board.board_size + 1):
+                    if row[i] == row[j]:
+                        for inlay in row[i]:
+                            binlay = board.get_inlay(inlay.x, inlay.y)
+                            for op in binlay.options.difference({i, j}):
+                                try:
+                                    if LOG: print("[*]\tRemoving option {} from [{}, {}]".format(op, binlay.x, binlay.y))
+                                    row[op].remove(binlay)
+                                    binlay.remove_option(op)
+                                    inlay.remove_option(op)
+                                    if len(row[op]) == 1:
+                                        board.lonely_options.add((op, row[op].pop()))
+                                except KeyError:
+                                    if LOG: print("[*]\tNo options to remove")
+
+        for col in board.cols:
+            for i in range(1, board.board_size + 1):
+                if len(col[i]) != 2:
+                    continue
+                for j in range(i + 1, board.board_size + 1):
+                    if col[i] == col[j]:
+                        for inlay in col[i]:
+                            binlay = board.get_inlay(inlay.x, inlay.y)
+                            for op in binlay.options.difference({i, j}):
+                                try:
+                                    if LOG: print("[*]\tRemoving option {} from [{}, {}]".format(op, binlay.x, binlay.y))
+                                    col[op].remove(binlay)
+                                    binlay.remove_option(op)
+                                    inlay.remove_option(op)
+                                    if len(col[op]) == 1:
+                                        board.lonely_options.add((op, col[op].pop()))
+                                except KeyError:
+                                    if LOG: print("[*]\tNo options to remove")
 
         self.x = 1
         for area in board.areas:
@@ -95,7 +133,7 @@ class SodukoAlgorithm:
                                     binlay = board.get_inlay(inlay.x, inlay.y)
                                     for op in binlay.options.difference({i, j, l}):
                                         try:
-                                            if LOG: print("[*]\t\tRemoving option {} from [{}, {}]".format(op, binlay.x, binlay.y))
+                                            if LOG: print("[*]\t\t\tRemoving option {} from [{}, {}]".format(op, binlay.x, binlay.y))
                                             area[op].remove(binlay)
                                             binlay.remove_option(op)
                                             inlay.remove_option(op)
@@ -173,10 +211,17 @@ class SodukoAlgorithm:
         empty_inlays.sort(key=lambda x: len(x.get_options()))
 
         # DFS loop
-        for ei in range(len(empty_inlays)):
+        eis = list(range(len(empty_inlays)))
+        if RANDOMIZE:
+            shuffle(eis)
+
+        for ei in eis:
             inlay = empty_inlays[ei]
             new_board = copy.deepcopy(looted_board)
-            options = copy.deepcopy(inlay.get_options())
+            options = list(copy.deepcopy(inlay.get_options()))
+            if RANDOMIZE:
+                shuffle(options)
+
             for op in options:
                 self.guess_times += 1
                 new_board.set_inlay(inlay.x, inlay.y, op)

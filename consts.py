@@ -3,7 +3,8 @@ BOARD_SIZE = 9
 
 global DEBUG, SOLUTION, LOG
 
-DEBUG = True
-SOLUTION = True
+DEBUG = False
+SOLUTION = False
 LOG = False
+RANDOMIZE = True
 

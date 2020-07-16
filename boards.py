@@ -97,7 +97,7 @@ solved = [
     "162378954",
 ]
 
-for k in range(52):
+for k in range(81):
     i = random.randint(0, 8)
     j = random.randint(0, 8)
     while solved[i][j] == "0":
