@@ -4,34 +4,32 @@ import hashlib
 from consts import *
 from inlay import Inlay
 from string_builder import StringBuilder
-from random import shuffle
+
 
 class SodukoBoard:
-    def __init__(self, array=None, square_size=SQUARE_SIZE, board_size=BOARD_SIZE):
-        self.square_size = square_size
-        self.board_size = board_size
+    def __init__(self, array=None):
         self.board = []
-        self.rows = [dict.fromkeys(range(1, 10)) for _ in range(self.board_size)]
-        self.cols = [dict.fromkeys(range(1, 10)) for _ in range(self.board_size)]
-        self.areas = [dict.fromkeys(range(1, 10)) for _ in range(self.board_size)]
+        self.rows = [dict.fromkeys(SQUARE_OPTIONS) for _ in BOARD_INDICES]
+        self.cols = [dict.fromkeys(SQUARE_OPTIONS) for _ in BOARD_INDICES]
+        self.areas = [dict.fromkeys(SQUARE_OPTIONS) for _ in BOARD_INDICES]
 
-        for i in range(0, 9):
-            for j in range(1, 10):
+        for i in range(0, BOARD_SIZE):
+            for j in SQUARE_OPTIONS:
                 self.rows[i][j], self.cols[i][j], self.areas[i][j] = set([]), set([]), set([])
 
         self.lonely_options = set([])
         self.empty_inlays = set([])
 
-        if array is not None:
+        if array:
             self.board = copy.deepcopy(array)
-            for i in range(0, self.board_size):
-                for j in range(0, self.board_size):
+            for i in range(0, BOARD_SIZE):
+                for j in range(0, BOARD_SIZE):
                     self.set_inlay(i, j, array[i][j])
                     if self.get_inlay(i, j).is_empty():
                         self.empty_inlays.add(self.get_inlay(i, j))
 
-            for i in range(0, self.board_size):
-                for j in range(0, self.board_size):
+            for i in range(0, BOARD_SIZE):
+                for j in range(0, BOARD_SIZE):
                     self.get_inlay(i, j).set_options(self._init_options(i, j))
                     self._add_to_structures(self.get_inlay(i, j))
 
@@ -41,29 +39,24 @@ class SodukoBoard:
     def __deepcopy__(self, memodict={}):
         new = SodukoBoard()
         new.empty_inlays = set([])
-        for i in range(0, self.board_size):
+        for i in range(0, BOARD_SIZE):
             new.board.append([])
-            for j in range(0, self.board_size):
+            for j in range(0, BOARD_SIZE):
                 new.board[i].append(copy.deepcopy(self.get_inlay(i, j)))
 
                 if new.get_inlay(i, j).is_empty():
                     new.empty_inlays.add(new.get_inlay(i, j))
 
-        for i in range(0, new.board_size):
-            for j in range(0, new.board_size):
+        for i in range(0, BOARD_SIZE):
+            for j in range(0, BOARD_SIZE):
                 new.get_inlay(i, j).set_options(new._init_options(i, j))
                 new._add_to_structures(new.get_inlay(i, j))
 
         new._get_lonely_options()
 
-        # new.rows = copy.deepcopy(self.rows)
-        # new.cols = copy.deepcopy(self.cols)
-        # new.areas = copy.deepcopy(self.areas)
-        # new.lonely_options = copy.deepcopy(self.lonely_options)
-
         return new
 
-    def _str_helper(self, x, y):
+    def _str_helper(self):
         def set_str(s):
             ops = list(s)
             sb = StringBuilder("{")
@@ -76,77 +69,59 @@ class SodukoBoard:
             return str(sb)
 
         sb = StringBuilder()
-        if False:  # DEBUG:
-            for i in range(0, self.board_size):
-                for k in range(2):
-                    for j in range(0, self.board_size):
-                        if k == 0:
-                            if i == x and j == y:
-                                sb += "[*{0}*]".format(
-                                    self.get_inlay(i, j).get() if not self.get_inlay(i, j).is_empty() else "")
-                            else:
-                                sb += "[{0}]".format(
-                                    self.get_inlay(i, j).get() if not self.get_inlay(i, j).is_empty() else "")
-                                sb += "\t"
-                        if k == 1:
-                            sb += "{0}".format(set_str(self.get_inlay(i, j).get_options()))
-                            sb += "\t"
-                    sb += "\n"
-        else:
-            for i in range(0, self.board_size):
-                if i % 3 == 0:
-                    sb += "=====================\n"
-                for j in range(0, self.board_size):
-                    if j == 3 or j == 6:
-                        sb += "| "
-                    sb += "{0}".format(self.get_inlay(i, j).get() if not self.get_inlay(i, j).is_empty() else " ",
-                                       set_str(self.get_inlay(i, j).get_options()))
-                    sb += " "
-                sb += "\n"
+
+        for i in range(0, BOARD_SIZE):
+            if i % 3 == 0:
+                sb += "=====================\n"
+            for j in range(0, BOARD_SIZE):
+                if j == 3 or j == 6:
+                    sb += "| "
+                sb += "{0}".format(self.get_inlay(i, j).get() if not self.get_inlay(i, j).is_empty() else " ",
+                                   set_str(self.get_inlay(i, j).get_options()))
+                sb += " "
+            sb += "\n"
 
         return str(sb)
 
     def __str__(self):
-        return self._str_helper(-1, -1)
+        return self._str_helper()
 
     def __hash__(self):
         return hashlib.md5(str(self))
 
-    def show(self, x=-1, y=-1):
-        print(self._str_helper(x, y))
+    def show(self):
+        print(self._str_helper())
 
-    def why_stucked(self):
+    def why_stuck(self):
         for inlay in copy.deepcopy(self.get_empty_inlays()):
             if len(inlay.get_options()) == 0:
                 return inlay
         return None
 
-    def is_stucked(self):
+    def is_stuck(self):
         for inlay in copy.deepcopy(self.get_empty_inlays()):
             if len(inlay.get_options()) == 0:
                 return True
         return False
 
     def _update_area_options(self, inlay):
-        for i in range(0, self.square_size):
-            for j in range(0, self.square_size):
-                self.get_inlay(int(inlay.x / self.square_size) * self.square_size + i,
-                               int(inlay.y / self.square_size) * self.square_size + j).remove_option(inlay.get())
+        for i in range(0, SQUARE_SIZE):
+            for j in range(0, SQUARE_SIZE):
+                self.get_inlay(int(inlay.x / SQUARE_SIZE) * SQUARE_SIZE + i,
+                               int(inlay.y / SQUARE_SIZE) * SQUARE_SIZE + j).remove_option(inlay.get())
 
     def _update_row_options(self, inlay):
-        for j in range(0, self.board_size):
+        for j in range(0, BOARD_SIZE):
             self.get_inlay(inlay.x, j).remove_option(inlay.get())
 
     def _update_col_options(self, inlay):
-        for i in range(0, self.board_size):
+        for i in range(0, BOARD_SIZE):
             self.get_inlay(i, inlay.y).remove_option(inlay.get())
 
     def _update_inlay_options(self, inlay):
         self.get_inlay(inlay.x, inlay.y).set_options_empty()
 
     def update_diff_options(self, inlay):
-        if inlay.x == 0 and inlay.y == 8 and inlay.value == 2:
-            t = 1
         self._remove_from_structures(inlay)
         self._update_inlay_options(inlay)
         self._update_col_options(inlay)
@@ -164,11 +139,11 @@ class SodukoBoard:
                 self.board[x][y] = Inlay(x, y, value)
             else:
                 inlay.set(value)
-                if value is None:
+                if not value:
                     self.empty_inlays.add(inlay)
                 else:
                     self.empty_inlays.remove(inlay)
-        except KeyError:  # TODO: Why do we even get here?
+        except KeyError:
             pass
 
     def get_inlay(self, x, y):
@@ -184,7 +159,7 @@ class SodukoBoard:
         return self.cols[y]
 
     def _get_area_coordinates(self, x, y):
-        return int(x / self.square_size) * self.square_size, int(y / self.square_size) * self.square_size
+        return int(x / SQUARE_SIZE) * SQUARE_SIZE, int(y / SQUARE_SIZE) * SQUARE_SIZE
 
     def get_area(self, x, y):
         """
@@ -195,38 +170,38 @@ class SodukoBoard:
         6 6 => 8
         """
         ax, ay = self._get_area_coordinates(x, y)
-        return self.areas[ax + int(ay / self.square_size)]
+        return self.areas[ax + int(ay / SQUARE_SIZE)]
 
     def _init_options(self, x, y):
-        all_values = set(range(1, 10))
+        all_values = set(SQUARE_OPTIONS)
         possible_values = set()
-        if self.get_inlay(x, y).get() is not None:
+        if self.get_inlay(x, y).get():
             return set()
 
-        for i in range(0, self.board_size):
+        for i in range(0, BOARD_SIZE):
             val = self.get_inlay(i, y).get()
-            if val is None:
+            if not val:
                 continue
             possible_values.add(val)
 
-        for j in range(0, self.board_size):
+        for j in range(0, BOARD_SIZE):
             val = self.get_inlay(x, j).get()
-            if val is None:
+            if not val:
                 continue
             possible_values.add(val)
 
-        for i in range(0, self.square_size):
-            for j in range(0, self.square_size):
-                val = self.get_inlay(int(x / self.square_size) * self.square_size + i,
-                                     int(y / self.square_size) * self.square_size + j).get()
-                if val is None:
+        for i in range(0, SQUARE_SIZE):
+            for j in range(0, SQUARE_SIZE):
+                val = self.get_inlay(int(x / SQUARE_SIZE) * SQUARE_SIZE + i,
+                                     int(y / SQUARE_SIZE) * SQUARE_SIZE + j).get()
+                if not val:
                     continue
                 possible_values.add(val)
 
         return all_values.difference(possible_values)
 
     def _add_to_structures(self, inlay):
-        if inlay is None or inlay.value is not None or inlay.options is None:
+        if not inlay or inlay.value or not inlay.options:
             return
 
         for op in inlay.options:
@@ -235,23 +210,28 @@ class SodukoBoard:
             self.get_area(inlay.x, inlay.y)[op].add(inlay)
 
     def _remove_from_structures(self, inlay):
-        if inlay is None or inlay.value is None:
+        if not inlay or not inlay.value:
             return
 
         row, col, area = self.get_row(inlay.x), self.get_col(inlay.y), self.get_area(inlay.x, inlay.y)
 
+        row[inlay.value] = set()
+        col[inlay.value] = set()
+        area[inlay.value] = set()
+
         for op in inlay.options:
             try:
                 row[op].remove(inlay)
+            except KeyError:
+                pass
+            try:
                 col[op].remove(inlay)
+            except KeyError:
+                pass
+            try:
                 area[op].remove(inlay)
             except KeyError:
                 pass
-
-            if inlay.value == op:
-                row[op] = set()
-                col[op] = set()
-                area[op] = set()
 
             if len(row[op]) == 1:
                 self.lonely_options.add((op, row[op].pop()))
@@ -262,9 +242,8 @@ class SodukoBoard:
             if len(area[op]) == 1:
                 self.lonely_options.add((op, area[op].pop()))
 
-
-        for i in range(0, self.board_size, int(self.board_size / self.square_size)):
-            for j in range(self.square_size):
+        for i in range(0, BOARD_SIZE, int(BOARD_SIZE / SQUARE_SIZE)):
+            for j in SQUARE_INDICES:
                 try:
                     self.get_area(inlay.x, i)[inlay.value].remove(Inlay(inlay.x, i + j))
                     if len(self.get_area(inlay.x, i)[inlay.value]) == 1:
@@ -279,13 +258,11 @@ class SodukoBoard:
                 except KeyError:
                     pass
 
-        for i in range(self.square_size):
-            for j in range(self.square_size):
+        for i in SQUARE_INDICES:
+            for j in SQUARE_INDICES:
                 affected_x_base, affected_y_base = self._get_area_coordinates(inlay.x, inlay.y)
                 try:
                     self.get_row(affected_x_base + i)[inlay.value].remove(Inlay(affected_x_base + i, affected_y_base + j))
-                    if len(self.get_row(affected_x_base + i)[inlay.value]) == 1:
-                        self.lonely_options.add((inlay.value, self.get_row(affected_x_base + i)[inlay.value].pop()))
                 except KeyError:
                     pass
                 try:
@@ -294,22 +271,26 @@ class SodukoBoard:
                         self.lonely_options.add((inlay.value, self.get_col(affected_y_base + i)[inlay.value].pop()))
                 except KeyError:
                     pass
-
-
+        for i in SQUARE_INDICES:
+            affected_x_base, affected_y_base = self._get_area_coordinates(inlay.x, inlay.y)
+            if len(self.get_row(affected_x_base + i)[inlay.value]) == 1:
+                self.lonely_options.add((inlay.value, self.get_row(affected_x_base + i)[inlay.value].pop()))
+            if len(self.get_col(affected_y_base + i)[inlay.value]) == 1:
+                self.lonely_options.add((inlay.value, self.get_col(affected_y_base + i)[inlay.value].pop()))
 
     def _get_lonely_options(self):
-        for i in range(self.board_size):
-            for j in range(1, 10):
+        for i in BOARD_INDICES:
+            for j in SQUARE_OPTIONS:
                 if len(self.rows[i][j]) == 1:
                     self.lonely_options.add((j, self.rows[i][j].pop()))
 
-        for i in range(self.board_size):
-            for j in range(1, 10):
+        for i in BOARD_INDICES:
+            for j in SQUARE_OPTIONS:
                 if len(self.cols[i][j]) == 1:
                     self.lonely_options.add((j, self.cols[i][j].pop()))
 
-        for i in range(self.board_size):
-            for j in range(1, 10):
+        for i in BOARD_INDICES:
+            for j in SQUARE_OPTIONS:
                 if len(self.areas[i][j]) == 1:
                     self.lonely_options.add((j, self.areas[i][j].pop()))
 

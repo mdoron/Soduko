@@ -1,4 +1,6 @@
 import random
+import config
+import consts
 
 board1 = [
     "608904007",
@@ -85,7 +87,32 @@ board7 = [
     "006000040"
 ]
 
-solved = [
+stucked = [
+    "700000700",
+    "000010008",
+    "020609000",
+    "500060320",
+    "300900005",
+    "062030004",
+    "000307050",
+    "000040000",
+    "006000040"
+]
+
+
+board9 = [
+    "658004007",
+    "401000000",
+    "200165000",
+    "010700462",
+    "049012005",
+    "000040000",
+    "004500200",
+    "970401000",
+    "000078000"
+]
+
+random_board = [
     "658934127",
     "431287596",
     "297165843",
@@ -97,14 +124,13 @@ solved = [
     "162378954",
 ]
 
-for k in range(81):
-    i = random.randint(0, 8)
-    j = random.randint(0, 8)
-    while solved[i][j] == "0":
-        i = random.randint(0, 8)
-        j = random.randint(0, 8)
+for k in range(config.EMPTY_INLAYS):
+    i = random.randint(0, consts.BOARD_SIZE - 1)
+    j = random.randint(0, consts.BOARD_SIZE - 1)
+    while random_board[i][j] == "0":
+        i = random.randint(0, consts.BOARD_SIZE - 1)
+        j = random.randint(0, consts.BOARD_SIZE - 1)
 
-    solved[i] = solved[i][:j] + "0" + solved[i][j+1:]
+    random_board[i] = random_board[i][:j] + "0" + random_board[i][j+1:]
 
-
-all_boards = [solved, board1, board2, board3, board4, board5, board6, board7]
+all_boards = [board1, board2, board3, board4, board5, board6, board7, stucked, board9]
