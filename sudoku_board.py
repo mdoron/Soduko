@@ -1,6 +1,7 @@
 import copy
 import hashlib
 
+from board_checker import BoardChecker
 from consts import *
 from inlay import Inlay
 from string_builder import StringBuilder
@@ -102,7 +103,7 @@ class SodukoBoard:
         for inlay in copy.deepcopy(self.get_empty_inlays()):
             if len(inlay.get_options()) == 0:
                 return True
-        return False
+        return not BoardChecker(self).can_continue()
 
     def _update_area_options(self, inlay):
         for i in range(0, SQUARE_SIZE):

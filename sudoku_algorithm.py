@@ -105,6 +105,9 @@ class SodukoAlgorithm:
                 board.lonely_options.remove((op, inlay))
                 if board.is_stuck():
                     return None
+                if board.is_full():
+                    return board
+
             if len(inlay.get_options()) == 1:
                 try:
                     board.set_inlay(inlay.x, inlay.y, inlay.get_options().pop())
@@ -116,6 +119,9 @@ class SodukoAlgorithm:
                 if config.LOG == 2: board.show()
                 if board.is_stuck():
                     return None
+                if board.is_full():
+                    return board
+
         if config.LOG: print("[*]\t\tFinished")
         return board
 
@@ -174,7 +180,6 @@ class SodukoAlgorithm:
 
             for op in options:
                 new_board.set_inlay(inlay.x, inlay.y, op)
-
                 new_board.update_diff_options(new_board.get_inlay(inlay.x, inlay.y))
                 if config.LOG: print(
                     "[*]\tGussing that [{}, {}]{} = {}".format(inlay.x + 1, inlay.y + 1, inlay.options, op))
