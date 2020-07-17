@@ -25,7 +25,7 @@ class Sudoku:
         if solution:
             print("[+] Done")
         else:
-            if config.LOG: print("[*] No solution for max_depth={}".format(config.MAX_DEPTH))
+            if config.LOG > 0: print("[*] No solution for max_depth={}".format(config.MAX_DEPTH))
 
         if config.SOLUTION:
             [print(step) for step in ["[*] Steps"] + alg.steps]

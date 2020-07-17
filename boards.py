@@ -1,3 +1,4 @@
+import copy
 import random
 import config
 import consts
@@ -124,13 +125,31 @@ random_board = [
     "162378954",
 ]
 
-for k in range(config.EMPTY_INLAYS):
-    i = random.randint(0, consts.BOARD_SIZE - 1)
-    j = random.randint(0, consts.BOARD_SIZE - 1)
-    while random_board[i][j] == "0":
+empty = [
+    "000000000",
+    "000000000",
+    "000000000",
+    "000000000",
+    "000000000",
+    "000000000",
+    "000000000",
+    "000000000",
+    "000000000"
+]
+
+
+def partially_empty(board, n):
+    for k in range(n):
         i = random.randint(0, consts.BOARD_SIZE - 1)
         j = random.randint(0, consts.BOARD_SIZE - 1)
+        while board[i][j] == "0":
+            i = random.randint(0, consts.BOARD_SIZE - 1)
+            j = random.randint(0, consts.BOARD_SIZE - 1)
 
-    random_board[i] = random_board[i][:j] + "0" + random_board[i][j+1:]
+        board[i] = board[i][:j] + "0" + board[i][j+1:]
 
+    return board
+
+
+random_board = partially_empty(copy.deepcopy(random_board), config.EMPTY_INLAYS)
 all_boards = [board1, board2, board3, board4, board5, board6, board7, stucked, board9]

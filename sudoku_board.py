@@ -37,6 +37,9 @@ class SodukoBoard:
             self._get_lonely_options()
         pass
 
+    def to_array(self):
+        return ["".join([str(ri.value) if ri.value else "0" for ri in row]) for row in self.board]
+
     def __deepcopy__(self, memodict={}):
         new = SodukoBoard()
         new.empty_inlays = set([])

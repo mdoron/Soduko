@@ -1,4 +1,6 @@
+import consts
 from input import Input
+from riddle_generator import RiddleGenerator
 from sudoku import Sudoku
 import argparse
 import config
@@ -23,6 +25,7 @@ def main():
     parser.add_argument("--randomize", action='store_true', help="shuffle options when algorithm needs to choose")
     parser.add_argument("--show", action='store_true', help="show solution steps")
     parser.add_argument("--log", help="show log")
+    parser.add_argument("--generate", help="generates a riddle")
 
     args = parser.parse_args()
     print(ART)
@@ -32,6 +35,19 @@ def main():
     config.LOG = int(args.log) if args.log else 0
     config.SOLUTION = True if args.show else False
     config.RANDOMIZE = True if args.randomize else False
+
+    config.GENERATE = args.generate
+    if config.GENERATE:
+        config.RANDOMIZE = True
+        if config.GENERATE == consts.GenerateHardness.EASY:
+            RiddleGenerator.generate(45, 0)
+        elif config.GENERATE == consts.GenerateHardness.INTERMEDIATE:
+            RiddleGenerator.generate(54, 0)
+        else:
+            RiddleGenerator.generate(55, 1)
+
+        return
+
 
     import boards
 
